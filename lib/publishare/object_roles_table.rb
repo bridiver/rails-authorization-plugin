@@ -21,7 +21,7 @@ module Authorization
       module InstanceMethods
         # If roles aren't explicitly defined in user class then check roles table
         def has_role?( role_name, authorizable_obj = nil )
-          if authorizable_obj == "*"
+          if authorizable_obj.nil?
             self.roles.find_by_name( role_name ) || self.roles.member?(get_role( role_name, authorizable_obj )) ? true : false    # If we ask a general role question, return true if any role is defined.
           else
             role = get_role( role_name, authorizable_obj )
@@ -43,7 +43,7 @@ module Authorization
           self.roles << role if role and not self.roles.exists?( role.id )
         end
 
-        def has_no_role( role_name, authorizable_obj = nil  )
+        def has_no_role( role_name, authorizable_obj = nil, delete_if_empty => false)
           role = get_role( role_name, authorizable_obj )
           self.roles.delete( role ) if role
           delete_role_if_empty( role )
@@ -70,16 +70,16 @@ module Authorization
           end
         end
 
-        def has_no_roles_for(authorizable_obj = nil)
+        def has_no_roles_for(authorizable_obj = nil, delete_if_empty => false)
           old_roles = roles_for(authorizable_obj).dup
-          self.roles.delete(roles_for(authorizable_obj))
-          old_roles.each { |role| delete_role_if_empty( role ) }
+          self.roles.delete( old_roles )
+          old_roles.each { |role| delete_role_if_empty( role ) } if delete_if_empty
         end
 
-        def has_no_roles
+        def has_no_roles(delete_if_empty => false)
           old_roles = self.roles.dup
           self.roles.clear
-          old_roles.each { |role| delete_role_if_empty( role ) }
+          old_roles.each { |role| delete_role_if_empty( role ) } if delete_if_empty
         end
 
         def authorizables_for( authorizable_class )
