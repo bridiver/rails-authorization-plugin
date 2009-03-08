@@ -21,7 +21,7 @@ module Authorization
       module InstanceMethods
         # If roles aren't explicitly defined in user class then check roles table
         def has_role?( role_name, authorizable_obj = nil )
-          if authorizable_obj.nil?
+          if authorizable_obj == "*"
             self.roles.find_by_name( role_name ) || self.roles.member?(get_role( role_name, authorizable_obj )) ? true : false    # If we ask a general role question, return true if any role is defined.
           else
             role = get_role( role_name, authorizable_obj )
